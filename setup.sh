@@ -55,6 +55,7 @@ wait_for_pod() {
 
 port_forwards() {
   killall kubectl || true
+  sleep 3
   POD_NAME=$(kubectl get pods -n infra -l "app=prometheus,component=server" -o jsonpath="{.items[0].metadata.name}")
   wait_for_pod infra $POD_NAME
   kubectl -n infra port-forward $POD_NAME 9090 &

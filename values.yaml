@@ -1,7 +1,8 @@
 ingress:
-  #annotations:
-  #  configuration.konghq.com: strip-path
-  hosts: null
+  # annotations:
+  #   configuration.konghq.com: strip-path
+  hosts: 
+  -
 
 namespaces:
 - name: myns
