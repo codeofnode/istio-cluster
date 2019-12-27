@@ -1,0 +1,19 @@
+postgresql:
+  enabled: false
+
+admin:
+  useTLS: false
+
+serviceMonitor:
+  enabled: true
+
+ingressController:
+  enabled: true
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8444"
+
+env:
+  proxy_listen: "0.0.0.0:8443 ssl"
+  database: "off"

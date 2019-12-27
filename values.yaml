@@ -1,0 +1,10 @@
+ingress:
+  #annotations:
+  #  configuration.konghq.com: strip-path
+  hosts: null
+
+namespaces:
+- name: myns
+  services:
+  - name: svc1
+  - name: svc2

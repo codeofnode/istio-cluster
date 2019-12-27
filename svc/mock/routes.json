@@ -1,0 +1,4 @@
+{
+  "/healthz": "/statuses/1",
+  "/user": "/users/1"
+}

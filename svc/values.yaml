@@ -1,0 +1,21 @@
+nameOverride: svc
+
+app:
+  mountConfigMap: true
+  mountedConfigMapName: svc-configmap
+  serverPort: 3000
+
+image:
+  snapshot: true # PATCH note: this will override command as per json-server
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  # annotations:
+    # -
+  path: /svc
+  # hosts:
+    # -

@@ -1,0 +1,14 @@
+{
+  "statuses": [
+    {
+      "id": 1,
+      "ok": true
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "name": "someuser"
+    }
+  ]
+}
