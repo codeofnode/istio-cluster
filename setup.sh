@@ -7,6 +7,7 @@ cluster=$(get_cluster)
 
 pre_setup() {
   create_dirs
+  setup_gateway
   download_tools
   setup_svcs
 }
@@ -26,28 +27,14 @@ cluster_setup() {
     $DIR/sandbox/bin/kind create cluster --name $cluster --kubeconfig $DIR/sandbox/configs/$cluster
   fi
   export_kubectl
-  kubectl create ns apigw 
   for ns in $(get_namespaces); do
     kubectl create ns $ns
+    kubectl label namespace $ns istio-injection=enabled
   done
-  kubectl create ns infra
-}
-
-apigw_setup() {
-  export IP=$(ip -o -4 a | tail -1 | awk '{print $4 }' | sed -e 's/\/.*$//')
-  if [ "$IP" == "" ]; then IP=172.17.0.1; fi
-  helm install apigw stable/kong --namespace apigw -f apigw/values.yaml --set proxy.externalIPs[0]=$IP
 }
 
 infra_setup() {
-  helm install prometheus stable/prometheus --namespace infra -f infra/prometheus/values.yaml
-  helm install grafana stable/grafana --namespace infra --values http://bit.ly/2FuFVfV
-}
-
-plugins_setup() {
-  for ns in $(get_namespaces); do 
-    yq w -d'*' apigw/resources.yaml metadata.namespace $ns | kubectl apply -f -
-  done
+  $DIR/sandbox/bin/istioctl manifest apply --set profile=demo
 }
 
 wait_for_pod() {
@@ -60,15 +47,9 @@ wait_for_pod() {
 port_forwards() {
   killall kubectl || true
   sleep 3
-  POD_NAME=$(kubectl get pods -n infra -l "app=prometheus,component=server" -o jsonpath="{.items[0].metadata.name}")
-  wait_for_pod infra $POD_NAME
-  kubectl -n infra port-forward $POD_NAME 9090 &
-  POD_NAME=$(kubectl get pods --namespace infra -l "app=grafana" -o jsonpath="{.items[0].metadata.name}")
-  wait_for_pod infra $POD_NAME
+  POD_NAME=$(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}')
+  wait_for_pod istio-system $POD_NAME
   kubectl -n infra port-forward $POD_NAME 3000 &
-  POD_NAME=$(kubectl get pods --namespace apigw -l "app=kong" -o jsonpath="{.items[0].metadata.name}")
-  wait_for_pod apigw $POD_NAME
-  kubectl -n apigw port-forward $POD_NAME 8000 &
 }
 
 svc_setup() {
@@ -86,8 +67,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   pre_setup
   cluster_setup
   infra_setup
-  apigw_setup
-  plugins_setup
   svc_setup
   port_forwards
 fi

@@ -8,6 +8,7 @@ generate() {
   echo "Waiting for services ..."
   while [ "$(curl -s -o /dev/null -w "%{http_code}" -k $1)" == "000" ]; do sleep 3; done
   echo "Taffic being bombarded ..."
+  istioctl dashboard kiali &
   google-chrome http://localhost:3000
   while true;
   do

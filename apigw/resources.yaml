@@ -1,18 +1,33 @@
-apiVersion: configuration.konghq.com/v1
-kind: KongPlugin
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
 metadata:
-  name: prometheus
-  namespace: sandbox
-  labels:
-    global: "true"
-plugin: prometheus
-
+  name: gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
 ---
-
-apiVersion: configuration.konghq.com/v1
-kind: KongIngress
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
 metadata:
-  name: strip-path
-  namespace: sandbox
-route:
-  strip_path: false
+  name: bookinfo
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - bookinfo-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /svc
+    route:
+    - destination:
+        host: svc
+        port:
+          number: 80
