@@ -1,6 +1,7 @@
 set -e
 PRV_DIR=$(pwd)
 DIR="$(cd `dirname $0` && pwd)"
+source $DIR/setup.sh
 
 export_urls() {
   HOST=$(kubectl get nodes -n apigw -o jsonpath='{.items[0].status.addresses[0].address}')
@@ -18,6 +19,7 @@ export_urls() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   bash -x $DIR/clean.sh
   bash -x $DIR/setup.sh
+  export_kubectl
   export_urls
   echo PROXY_URL = $PU
   bash $DIR/traffic.sh $PU

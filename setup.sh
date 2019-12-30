@@ -3,6 +3,7 @@ PRV_DIR=$(pwd)
 DIR="$(cd `dirname $0` && pwd)"
 
 source $DIR/utils.sh
+cluster=$(get_cluster)
 
 pre_setup() {
   create_dirs
@@ -10,18 +11,21 @@ pre_setup() {
   setup_svcs
 }
 
-cluster_setup() {
-  cluster=$(get_cluster)
-  rm -f $DIR/sandbox/configs/$cluster
-  if ! $DIR/sandbox/bin/kind get clusters | grep $cluster; then
-    $DIR/sandbox/bin/kind create cluster --name $cluster --kubeconfig $DIR/sandbox/configs/$cluster
-  fi
+export_kubectl() {
   if command -v kctl > /dev/null 2>&1; then
     kctl ln local $DIR/sandbox/configs/$cluster
     source kctl
   else
     export KUBECONFIG=$DIR/sandbox/configs/$cluster
   fi
+}
+
+cluster_setup() {
+  rm -f $DIR/sandbox/configs/$cluster
+  if ! $DIR/sandbox/bin/kind get clusters | grep $cluster; then
+    $DIR/sandbox/bin/kind create cluster --name $cluster --kubeconfig $DIR/sandbox/configs/$cluster
+  fi
+  export_kubectl
   kubectl create ns apigw 
   for ns in $(get_namespaces); do
     kubectl create ns $ns
