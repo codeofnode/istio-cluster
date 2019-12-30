@@ -67,8 +67,8 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   pre_setup
   cluster_setup
   infra_setup
-  svc_setup
   port_forwards
+  svc_setup
 fi
 
 cd $PRV_DIR
