@@ -49,7 +49,7 @@ port_forwards() {
   sleep 3
   POD_NAME=$(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}')
   wait_for_pod istio-system $POD_NAME
-  kubectl -n infra port-forward $POD_NAME 3000 &
+  kubectl -n istio-system port-forward $POD_NAME 3000 &
 }
 
 svc_setup() {
@@ -61,6 +61,8 @@ svc_setup() {
     done
     nc=$[$nc +1]
   done
+  kubectl create -n istio-system secret tls istio-ingressgateway-certs --key ./certs/server.key --cert ./certs/server.cert
+  kubectl apply -f ./apigw/resources.yaml
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

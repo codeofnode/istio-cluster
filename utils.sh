@@ -2,7 +2,7 @@ create_dirs() {
   mkdir -p $DIR/sandbox/bin
   mkdir -p $DIR/sandbox/configs
   export PATH=$DIR/sandbox/bin:$PATH
-  cp -r $DIR/infra $DIR/apigw $DIR/svc $DIR/sandbox/
+  cp -r $DIR/certs $DIR/infra $DIR/apigw $DIR/svc $DIR/sandbox/
   cd $DIR/sandbox
 }
 
@@ -23,6 +23,7 @@ get_cluster() {
 setup_gateway() {
   cluster=$(get_cluster)
   $DIR/sandbox/bin/yq w -i -d0 apigw/resources.yaml metadata.name $cluster-gateway
+  $DIR/sandbox/bin/yq w -i -d* apigw/resources.yaml metadata.namespace $cluster
   $DIR/sandbox/bin/yq w -i -d1 apigw/resources.yaml metadata.name $cluster
   $DIR/sandbox/bin/yq w -i -d1 apigw/resources.yaml "spec.gateways[0]" $cluster-gateway
 }
