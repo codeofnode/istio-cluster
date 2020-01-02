@@ -20,16 +20,18 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: bookinfo
+  name: vs
 spec:
   hosts:
   - "*"
   gateways:
-  - bookinfo-gateway
+  - vs-gateway
   http:
   - match:
     - uri:
-        prefix: /svc
+        prefix: "/svc/"
+    rewrite:
+      uri: "/"
     route:
     - destination:
         host: svc

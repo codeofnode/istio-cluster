@@ -46,7 +46,9 @@ wait_for_pod() {
 
 port_forwards() {
   killall kubectl || true
-  sleep 3
+  sleep 20
+  POD_NAME=$(kubectl -n istio-system get pod -l istio=sidecar-injector -o jsonpath='{.items[0].metadata.name}')
+  wait_for_pod istio-system $POD_NAME
   POD_NAME=$(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}')
   wait_for_pod istio-system $POD_NAME
   kubectl -n istio-system port-forward $POD_NAME 3000 &
@@ -56,7 +58,7 @@ svc_setup() {
   nc=0
   for ns in $(get_namespaces); do 
     for sc in $(get_services $nc); do 
-      helm install $ns-$sc ./mockserver/helm/mockserver --namespace $ns -f ./mockserver/helm/$ns-$sc-config/values.yaml
+      helm install $sc ./mockserver/helm/mockserver --namespace $ns -f ./mockserver/helm/$ns-$sc-config/values.yaml
       helm install $ns-$sc-config ./mockserver/helm/$ns-$sc-config --namespace $ns
     done
     nc=$[$nc +1]
