@@ -1,0 +1,18 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: prometheus
+  namespace: sandbox
+  labels:
+    global: "true"
+plugin: prometheus
+
+---
+
+apiVersion: configuration.konghq.com/v1
+kind: KongIngress
+metadata:
+  name: strip-path
+  namespace: sandbox
+route:
+  strip_path: false

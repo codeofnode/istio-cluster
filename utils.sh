@@ -3,6 +3,7 @@ create_dirs() {
   mkdir -p $DIR/sandbox/configs
   export PATH=$DIR/sandbox/bin:$PATH
   cp -r $DIR/certs $DIR/infra $DIR/apigw $DIR/svc $DIR/sandbox/
+  echo "$1" > $DIR/sandbox/clusterkind
   cd $DIR/sandbox
 }
 
@@ -20,12 +21,12 @@ get_cluster() {
   echo $cluster
 }
 
-setup_gateway() {
+patch_isito_gateway() {
   cluster=$(get_cluster)
-  $DIR/sandbox/bin/yq w -i -d0 apigw/resources.yaml metadata.name $cluster-gateway
-  $DIR/sandbox/bin/yq w -i -d* apigw/resources.yaml metadata.namespace $cluster
-  $DIR/sandbox/bin/yq w -i -d1 apigw/resources.yaml metadata.name $cluster
-  $DIR/sandbox/bin/yq w -i -d1 apigw/resources.yaml "spec.gateways[0]" $cluster-gateway
+  $DIR/sandbox/bin/yq w -i -d0 apigw/istio.yaml metadata.name $cluster-gateway
+  $DIR/sandbox/bin/yq w -i -d* apigw/istio.yaml metadata.namespace $cluster
+  $DIR/sandbox/bin/yq w -i -d1 apigw/istio.yaml metadata.name $cluster
+  $DIR/sandbox/bin/yq w -i -d1 apigw/istio.yaml "spec.gateways[0]" $cluster-gateway
 }
 
 download_tools() {
@@ -67,12 +68,17 @@ setup_svcs() {
   sed -i 's|mockserver.properties|db.json|' helm/mockserver-config/templates/configmap.yaml
   sed -i 's|initializerJson.json|routes.json|' helm/mockserver-config/templates/configmap.yaml
   nc=0
-  routeRule=$($DIR/sandbox/bin/yq r -d1 ../apigw/resources.yaml spec.http | sed -e 's/^/  /')
+  cluster_type=`cat $DIR/sandbox/clusterkind`
+  if [ "$cluster_type" == "istio" ]; then
+    routeRule=$($DIR/sandbox/bin/yq r -d1 ../apigw/resources.yaml spec.http | sed -e 's/^/  /')
+  fi
   for ns in $(get_namespaces); do 
     ss=0
     for sc in $(get_services $nc); do 
-      if [ "$ss" == "0" ]; then
-        sed -i "s/svc/$sc/" ../apigw/resources.yaml
+      if [ "$cluster_type" == "istio" ]; then
+        if [ "$ss" == "0" ]; then
+          sed -i "s/svc/$sc/" ../apigw/resources.yaml
+        fi
       fi
       i=$ns-$sc
       rm -rf helm/$i-config
@@ -81,12 +87,18 @@ setup_svcs() {
       cp -r $DIR/svc/mock/* helm/$i-config/static/
       cp -r $DIR/svc/mock/* helm/$i-config/static/
       cp $DIR/svc/values.yaml helm/$i-config/
-      if [ "$ss" != "0" ]; then
-        echo "$routeRule" | sed -e "s/svc/$sc/" >> ../apigw/resources.yaml
+      if [ "$cluster_type" == "istio" ]; then
+        if [ "$ss" != "0" ]; then
+          echo "$routeRule" | sed -e "s/svc/$sc/" >> ../apigw/resources.yaml
+        fi
       fi
       $DIR/sandbox/bin/yq w -i helm/$i-config/values.yaml nameOverride $sc
       $DIR/sandbox/bin/yq w -i helm/$i-config/values.yaml app.mountedConfigMapName $i-configmap
-      $DIR/sandbox/bin/yq w -i helm/$i-config/values.yaml ingress.enabled "false"
+      if [ "$cluster_type" == "istio" ]; then
+        $DIR/sandbox/bin/yq w -i helm/$i-config/values.yaml ingress.enabled "false"
+      else
+        $DIR/sandbox/bin/yq w -i helm/$i-config/values.yaml ingress.path /$sc
+      fi
       $DIR/sandbox/bin/yq m -i helm/$i-config/values.yaml $DIR/values.yaml
       ss=$[$ss +1]
     done
