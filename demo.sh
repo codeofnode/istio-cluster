@@ -20,7 +20,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   export_kubectl
   export_urls
   echo PROXY_URL = $PU
-exit
   bash $DIR/traffic.sh $PU
 fi
 

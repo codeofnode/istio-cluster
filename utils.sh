@@ -37,6 +37,12 @@ download_tools() {
     curl -Lo ./bin/yq https://github.com/mikefarah/yq/releases/download/2.4.1/yq_linux_amd64
     chmod +x ./bin/yq
   fi
+  if [ ! -f ./bin/helm > /dev/null 2>&1 ]; then
+    wget https://get.helm.sh/helm-v3.0.2-linux-amd64.tar.gz
+    tar -zxf helm-v3.0.2-linux-amd64.tar.gz
+    mv linux-amd64/helm ./bin/helm
+    chmod +x ./bin/helm
+  fi
   if [ ! -f ./bin/istioctl > /dev/null 2>&1 ]; then
     curl -L https://istio.io/downloadIstio | sh -
     ln -s ../istio-1.4.2/bin/istioctl bin/istioctl
@@ -52,6 +58,9 @@ setup_svcs() {
     sed -i 's|imagePullPolicy: Always|command: ["json-server", "/config/db.json", "--host", "0.0.0.0", "--routes", "/config/routes.json"]|' helm/mockserver/templates/deployment.yaml
     sed -i 's|mockserver.properties|db.json|' helm/mockserver-config/templates/configmap.yaml
     sed -i 's|initializerJson.json|routes.json|' helm/mockserver-config/templates/configmap.yaml
+    sed -i 's|serviceport|http|' helm/mockserver/templates/service.yaml
+    sed -i 's|serviceport|http|' helm/mockserver/templates/ingress.yaml
+    sed -i 's|serviceport|http|' helm/mockserver/templates/deployment.yaml
     cd ..
   fi
   cd mockserver

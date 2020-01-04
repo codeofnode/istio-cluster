@@ -7,7 +7,7 @@ source $DIR/utils.sh
 generate() {
   echo "Waiting for services ..."
   while [ "$(curl -s -o /dev/null -w "%{http_code}" -k $1)" == "000" ]; do sleep 3; done
-  istioctl dashboard kiali &
+  $DIR/sandbox/bin/istioctl dashboard kiali &
   google-chrome http://localhost:3000
   echo "Taffic being bombarded ..."
   while true;
