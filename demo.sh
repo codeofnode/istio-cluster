@@ -29,7 +29,7 @@ kong_urls() {
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   bash -x $DIR/clean.sh
-  bash -x $DIR/setup.sh
+  bash -x $DIR/setup.sh $1
   export_kubectl
   ${1:-istio}_urls
   echo PROXY_URL = $PU
