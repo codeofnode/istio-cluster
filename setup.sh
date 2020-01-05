@@ -58,6 +58,7 @@ kong_plugins_setup() {
 }
 
 istio_plugins_setup() {
+  kubectl create -n istio-system secret tls istio-ingressgateway-certs --key ./certs/server.key --cert ./certs/server.cert
   kubectl apply -f ./apigw/istio.yaml
 }
 
@@ -112,9 +113,6 @@ svc_setup() {
     done
     nc=$[$nc +1]
   done
-  if  [ "$cluster_type" == "istio" ]; then
-    kubectl create -n istio-system secret tls istio-ingressgateway-certs --key ./certs/server.key --cert ./certs/server.cert
-  fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

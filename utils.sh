@@ -70,14 +70,14 @@ setup_svcs() {
   nc=0
   cluster_type=`cat $DIR/sandbox/clusterkind`
   if [ "$cluster_type" == "istio" ]; then
-    routeRule=$($DIR/sandbox/bin/yq r -d1 ../apigw/resources.yaml spec.http | sed -e 's/^/  /')
+    routeRule=$($DIR/sandbox/bin/yq r -d1 ../apigw/istio.yaml spec.http | sed -e 's/^/  /')
   fi
   for ns in $(get_namespaces); do 
     ss=0
     for sc in $(get_services $nc); do 
       if [ "$cluster_type" == "istio" ]; then
         if [ "$ss" == "0" ]; then
-          sed -i "s/svc/$sc/" ../apigw/resources.yaml
+          sed -i "s/svc/$sc/" ../apigw/istio.yaml
         fi
       fi
       i=$ns-$sc
@@ -89,7 +89,7 @@ setup_svcs() {
       cp $DIR/svc/values.yaml helm/$i-config/
       if [ "$cluster_type" == "istio" ]; then
         if [ "$ss" != "0" ]; then
-          echo "$routeRule" | sed -e "s/svc/$sc/" >> ../apigw/resources.yaml
+          echo "$routeRule" | sed -e "s/svc/$sc/" >> ../apigw/istio.yaml
         fi
       fi
       $DIR/sandbox/bin/yq w -i helm/$i-config/values.yaml nameOverride $sc
