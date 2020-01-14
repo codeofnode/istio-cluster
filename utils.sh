@@ -7,6 +7,15 @@ create_dirs() {
   cd $DIR/sandbox
 }
 
+kuma_yaml() {
+  KUMA_CP_TAG=$(docker images | grep kuma-cp | awk '{print $2}')
+  if [ ! -f $DIR/sandbox/kumamesh.yaml > /dev/null 2>&1 ]; then
+    $DIR/sandbox/bin/kumactl install control-plane > $DIR/sandbox/kumamesh.yaml
+    sed -i 's|kong-docker-kuma-docker.bintray.io/kuma-cp:.*$|kuma/kuma-cp:latest|' $DIR/sandbox/kumamesh.yaml
+  fi
+  sed -i 's|kuma/kuma-cp:latest|kuma/kuma-cp:'$KUMA_CP_TAG'|' $DIR/sandbox/kumamesh.yaml
+}
+
 get_namespaces() {
   echo $($DIR/sandbox/bin/yq r $DIR/values.yaml 'namespaces[*].name' | cut -d ' ' -f2)
 }
@@ -47,6 +56,11 @@ download_tools() {
   if [ ! -f ./bin/istioctl > /dev/null 2>&1 ]; then
     curl -L https://istio.io/downloadIstio | sh -
     ln -s ../istio-1.4.2/bin/istioctl bin/istioctl
+  fi
+  if [ ! -f ./bin/kumactl > /dev/null 2>&1 ]; then
+    wget https://kong.bintray.com/kuma/kuma-0.3.1-ubuntu-amd64.tar.gz
+    tar -zxf kuma-0.3.1-ubuntu-amd64.tar.gz
+    chmod +x ./bin/kumactl
   fi
 }
 

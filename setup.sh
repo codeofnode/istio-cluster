@@ -36,6 +36,8 @@ cluster_setup() {
     kubectl create ns $ns
     if [ "$cluster_type" == "istio" ]; then
       kubectl label namespace $ns istio-injection=enabled
+    elif [ "$cluster_type" == "kuma" ]; then
+      kubectl label namespace $ns kuma.io/sidecar-injection=enabled
     fi
   done
 }
@@ -68,6 +70,13 @@ kong_setup() {
   kong_plugins_setup
 }
 
+kuma_setup() {
+  $DIR/sandbox/bin/kumactl install control-plane | kubectl apply -f -
+  #kuma_yaml
+  #$DIR/sandbox/bin/kind load docker-image kuma/kuma-cp:$KUMA_CP_TAG --name $cluster
+  #kubectl apply -f $DIR/sandbox/kumamesh.yaml
+}
+
 istio_setup() {
   $DIR/sandbox/bin/istioctl manifest apply --set profile=demo
   istio_plugins_setup
@@ -88,6 +97,13 @@ istio_port_forwards() {
   POD_NAME=$(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}')
   wait_for_pod istio-system $POD_NAME
   kubectl -n istio-system port-forward $POD_NAME 3000 &
+}
+
+kuma_port_forwards() {
+  killall kubectl || true
+  sleep 20
+  POD_NAME=$(kubectl get pods -n kuma-system -l "app=kuma-injector" -o jsonpath="{.items[0].metadata.name}")
+  wait_for_pod kuma-system $POD_NAME
 }
 
 kong_port_forwards() {

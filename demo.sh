@@ -3,6 +3,10 @@ PRV_DIR=$(pwd)
 DIR="$(cd `dirname $0` && pwd)"
 source $DIR/setup.sh
 
+kuma_urls() {
+  echo "Skipping ..."
+}
+
 istio_urls() {
   export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')
   export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}')

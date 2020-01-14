@@ -8,6 +8,9 @@ app:
 image:
   snapshot: true # PATCH note: this will override command as per json-server
 
+podAnnotations:
+  kuma.io/mesh: default
+
 service:
   type: ClusterIP
   port: 80
