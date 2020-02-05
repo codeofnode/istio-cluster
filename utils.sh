@@ -17,16 +17,16 @@ kuma_yaml() {
 }
 
 get_namespaces() {
-  echo $($DIR/sandbox/bin/yq r $DIR/values.yaml 'namespaces[*].name' | cut -d ' ' -f2)
+  echo $($DIR/sandbox/bin/yq r ${CLUSTER_VALUES_YAML:-$DIR/values.yaml} 'namespaces[*].name' | cut -d ' ' -f2)
 }
 
 get_services() {
-  echo $($DIR/sandbox/bin/yq r $DIR/values.yaml "namespaces[$1].services[*].name" | cut -d ' ' -f2)
+  echo $($DIR/sandbox/bin/yq r ${CLUSTER_VALUES_YAML:-$DIR/values.yaml} "namespaces[$1].services[*].name" | cut -d ' ' -f2)
 }
 
 get_cluster() {
-  cluster=$($DIR/sandbox/bin/yq r $DIR/values.yaml cluster)
-  if [ "$cluster" == "null" ]; then cluster=$($DIR/sandbox/bin/yq r $DIR/values.yaml namespaces[0].name); fi
+  cluster=$($DIR/sandbox/bin/yq r ${CLUSTER_VALUES_YAML:-$DIR/values.yaml} cluster)
+  if [ "$cluster" == "null" ]; then cluster=$($DIR/sandbox/bin/yq r ${CLUSTER_VALUES_YAML:-$DIR/values.yaml} namespaces[0].name); fi
   echo $cluster
 }
 
@@ -113,7 +113,7 @@ setup_svcs() {
       else
         $DIR/sandbox/bin/yq w -i helm/$i-config/values.yaml ingress.path /$sc
       fi
-      $DIR/sandbox/bin/yq m -i helm/$i-config/values.yaml $DIR/values.yaml
+      $DIR/sandbox/bin/yq m -i helm/$i-config/values.yaml ${CLUSTER_VALUES_YAML:-$DIR/values.yaml}
       ss=$[$ss +1]
     done
     nc=$[$nc +1]
