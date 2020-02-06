@@ -135,7 +135,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   pre_setup
   cluster_setup
   if [ "${CLUSTER_CUSTOM_INSTALL_SETUP}" != "" ]; then
-    KIND_BIN=$DIR/sandbox/bin/kind CLUSTER_NAME=$cluster bash -x ${CLUSTER_CUSTOM_INSTALL_SETUP}
+    KIND_BIN=$DIR/sandbox/bin/kind CLUSTER_NAME=$cluster bash ${CLUSTER_CUSTOM_INSTALL_SETUP}
   else
     ${cluster_type}_setup
     ${cluster_type}_port_forwards
